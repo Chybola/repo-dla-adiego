@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 const STORAGE_KEY = "studytrack-topics";
+const THEME_KEY = "studytrack-theme";
 const PAGE_SIZE = 5;
 
 const starterTopics = [
@@ -134,6 +135,8 @@ const emptyForm = {
   difficulty: "Średni",
   priority: "Normalny",
   status: "Do zrobienia",
+  needsReview: false,
+  studyType: "Czytanie",
 };
 
 const statusClass = {
@@ -159,12 +162,7 @@ function formatDate(date) {
   }).format(new Date(`${date}T12:00:00`));
 }
 
-function TopicDialog({ topic, onClose, onSave }) {
-  const [form, setForm] = useState(
-    topic ? { ...topic, minutes: String(topic.minutes) } : emptyForm,
-  );
-  const [error, setError] = useState("");
-
+function Dialog({ children, titleId, onClose, isAlert = false, className = "" }) {
   useEffect(() => {
     function handleKeyDown(event) {
       if (event.key === "Escape") onClose();
@@ -172,6 +170,37 @@ function TopicDialog({ topic, onClose, onSave }) {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
+
+  return (
+    <div
+      className="overlay"
+      onMouseDown={(event) => event.target === event.currentTarget && onClose()}
+    >
+      <section
+        className={`dialog ${className}`.trim()}
+        role={isAlert ? "alertdialog" : "dialog"}
+        aria-modal="true"
+        aria-labelledby={titleId}
+      >
+        {children}
+      </section>
+    </div>
+  );
+}
+
+function TopicDialog({ topic, onClose, onSave }) {
+  const [form, setForm] = useState(
+    topic
+      ? {
+          ...emptyForm,
+          ...topic,
+          minutes: String(topic.minutes),
+          needsReview: topic.needsReview ?? false,
+          studyType: topic.studyType ?? "Czytanie",
+        }
+      : emptyForm,
+  );
+  const [error, setError] = useState("");
 
   function update(field, value) {
     setForm((current) => ({ ...current, [field]: value }));
@@ -197,16 +226,7 @@ function TopicDialog({ topic, onClose, onSave }) {
   }
 
   return (
-    <div
-      className="overlay"
-      onMouseDown={(event) => event.target === event.currentTarget && onClose()}
-    >
-      <section
-        className="dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="topic-dialog-title"
-      >
+    <Dialog titleId="topic-dialog-title" onClose={onClose}>
         <div className="dialog-head">
           <div>
             <span className="eyebrow">PLAN NAUKI</span>
@@ -273,7 +293,7 @@ function TopicDialog({ topic, onClose, onSave }) {
                 <option>Średni</option>
                 <option>Trudny</option>
               </select>
-            </label>
+            </label> 
             <label>
               Priorytet
               <select
@@ -297,6 +317,32 @@ function TopicDialog({ topic, onClose, onSave }) {
               <option>Zrobione</option>
             </select>
           </label>
+          <label className="checkbox-field">
+            <input
+              type="checkbox"
+              checked={form.needsReview}
+              onChange={(event) => update("needsReview", event.target.checked)}
+            />
+            Powtórzyć temat przed terminem
+          </label>
+          <fieldset className="radio-field">
+            <legend>Forma nauki</legend>
+            {[
+              ["Czytanie", "Czytanie notatek"],
+              ["Ćwiczenia", "Rozwiązywanie ćwiczeń"],
+            ].map(([value, label]) => (
+              <label key={value}>
+                <input
+                  type="radio"
+                  name="studyType"
+                  value={value}
+                  checked={form.studyType === value}
+                  onChange={(event) => update("studyType", event.target.value)}
+                />
+                {label}
+              </label>
+            ))}
+          </fieldset>
           {error && (
             <p className="error" role="alert">
               {error}
@@ -316,33 +362,18 @@ function TopicDialog({ topic, onClose, onSave }) {
             </button>
           </div>
         </form>
-      </section>
-    </div>
+    </Dialog>
   );
 }
 
 function DeleteDialog({ topic, onCancel, onConfirm }) {
-  useEffect(() => {
-    function handleKeyDown(event) {
-      if (event.key === "Escape") onCancel();
-    }
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onCancel]);
-
   return (
-    <div
-      className="overlay"
-      onMouseDown={(event) =>
-        event.target === event.currentTarget && onCancel()
-      }
+    <Dialog
+      titleId="delete-title"
+      onClose={onCancel}
+      isAlert
+      className="confirm-dialog"
     >
-      <section
-        className="dialog confirm-dialog"
-        role="alertdialog"
-        aria-modal="true"
-        aria-labelledby="delete-title"
-      >
         <span className="eyebrow">USUWANIE TEMATU</span>
         <h2 id="delete-title">Na pewno usunąć?</h2>
         <p>
@@ -357,16 +388,62 @@ function DeleteDialog({ topic, onCancel, onConfirm }) {
             Usuń temat
           </button>
         </div>
-      </section>
-    </div>
+    </Dialog>
+  );
+}
+
+function Pagination({ page, pageCount, onPageChange }) {
+  if (pageCount < 2) return null;
+
+  return (
+    <nav className="pagination" aria-label="Strony listy tematów">
+      <button
+        type="button"
+        disabled={page === 1}
+        onClick={() => onPageChange(page - 1)}
+        aria-label="Poprzednia strona"
+      >
+        ←
+      </button>
+      {Array.from({ length: pageCount }, (_, index) => index + 1).map(
+        (pageNumber) => (
+          <button
+            type="button"
+            key={pageNumber}
+            className={page === pageNumber ? "current" : ""}
+            aria-current={page === pageNumber ? "page" : undefined}
+            onClick={() => onPageChange(pageNumber)}
+          >
+            {pageNumber}
+          </button>
+        ),
+      )}
+      <button
+        type="button"
+        disabled={page === pageCount}
+        onClick={() => onPageChange(page + 1)}
+        aria-label="Następna strona"
+      >
+        →
+      </button>
+    </nav>
   );
 }
 
 export default function App() {
   const [topics, setTopics] = useState(readTopics);
+  const [theme, setTheme] = useState(() => {
+    try {
+      return localStorage.getItem(THEME_KEY) === "dark" ? "dark" : "light";
+    } catch {
+      return "light";
+    }
+  });
   const [search, setSearch] = useState("");
   const [subjectFilter, setSubjectFilter] = useState("Wszystkie przedmioty");
   const [statusFilter, setStatusFilter] = useState("Wszystkie statusy");
+  const [sortField, setSortField] = useState("timeUntil");
+  const [sortDirection, setSortDirection] = useState("asc");
   const [page, setPage] = useState(1);
   const [editingTopic, setEditingTopic] = useState(null);
   const [isAdding, setIsAdding] = useState(false);
@@ -375,6 +452,13 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(topics));
   }, [topics]);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    try {
+      localStorage.setItem(THEME_KEY, theme);
+    } catch {}
+  }, [theme]);
 
   const subjects = useMemo(
     () =>
@@ -400,14 +484,33 @@ export default function App() {
         (topic) =>
           statusFilter === "Wszystkie statusy" || topic.status === statusFilter,
       )
-      .sort((first, second) => first.minutes - second.minutes);
-  }, [topics, search, subjectFilter, statusFilter]);
+      .sort((first, second) => {
+        const firstValue =
+          sortField === "timeUntil"
+            ? new Date(`${first.dueDate}T00:00:00`).getTime() - Date.now()
+            : first[sortField];
+        const secondValue =
+          sortField === "timeUntil"
+            ? new Date(`${second.dueDate}T00:00:00`).getTime() - Date.now()
+            : second[sortField];
+        const comparison =
+          typeof firstValue === "string"
+            ? firstValue.localeCompare(secondValue, "pl")
+            : firstValue - secondValue;
+        return sortDirection === "asc" ? comparison : -comparison;
+      });
+  }, [topics, search, subjectFilter, statusFilter, sortField, sortDirection]);
 
   const pageCount = Math.max(1, Math.ceil(filteredTopics.length / PAGE_SIZE));
+  const currentPage = Math.min(page, pageCount);
   const visibleTopics = filteredTopics.slice(
-    (page - 1) * PAGE_SIZE,
-    page * PAGE_SIZE,
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE,
   );
+
+  useEffect(() => {
+    if (page !== currentPage) setPage(currentPage);
+  }, [page, currentPage]);
   function saveTopic(values) {
     if (editingTopic) {
       setTopics((current) =>
@@ -450,6 +553,17 @@ export default function App() {
       <header className="topbar">
         <h1>StudyTrack</h1>
         <p>Plan nauki</p>
+        <button
+          className="theme-toggle"
+          type="button"
+          aria-pressed={theme === "dark"}
+          onClick={() =>
+            setTheme((current) => (current === "dark" ? "light" : "dark"))
+          }
+        >
+          <span aria-hidden="true">{theme === "dark" ? "☀" : "☾"}</span>
+          {theme === "dark" ? "Tryb jasny" : "Tryb ciemny"}
+        </button>
       </header>
 
       <section className="workspace" aria-label="Plan nauki">
@@ -503,6 +617,30 @@ export default function App() {
             <option>W trakcie</option>
             <option>Zrobione</option>
           </select>
+          <label className="visually-hidden" htmlFor="sort-field">
+            Sortuj według
+          </label>
+          <select
+            id="sort-field"
+            value={sortField}
+            onChange={(event) => setSortField(event.target.value)}
+          >
+            <option value="minutes">Czas nauki</option>
+            <option value="title">Temat</option>
+            <option value="subject">Przedmiot</option>
+            <option value="timeUntil">Czas do terminu</option>
+          </select>
+          <label className="visually-hidden" htmlFor="sort-direction">
+            Kierunek sortowania
+          </label>
+          <select
+            id="sort-direction"
+            value={sortDirection}
+            onChange={(event) => setSortDirection(event.target.value)}
+          >
+            <option value="asc">Rosnąco</option>
+            <option value="desc">Malejąco</option>
+          </select>
         </div>
 
         <div className="list-meta">
@@ -513,8 +651,8 @@ export default function App() {
               <>
                 Wyniki{" "}
                 <strong>
-                  {(page - 1) * PAGE_SIZE + 1}–
-                  {Math.min(page * PAGE_SIZE, filteredTopics.length)}
+                  {(currentPage - 1) * PAGE_SIZE + 1}–
+                  {Math.min(currentPage * PAGE_SIZE, filteredTopics.length)}
                 </strong>{" "}
                 z <strong>{filteredTopics.length}</strong>
               </>
@@ -545,7 +683,7 @@ export default function App() {
                     : `Oznacz ${topic.title} jako zrobione`
                 }
               >
-                {topic.status === "Zrobione" ? "✓" : ""}
+                {topic.status === "Zrobione" ? "✓ " : ""}
               </button>
               <div className="topic-name">
                 <span className="subject-label">{topic.subject}</span>
@@ -596,39 +734,11 @@ export default function App() {
           )}
         </div>
 
-        {pageCount > 1 && (
-          <nav className="pagination" aria-label="Strony listy tematów">
-            <button
-              type="button"
-              disabled={page === 1}
-              onClick={() => setPage((current) => current - 1)}
-              aria-label="Poprzednia strona"
-            >
-              ←
-            </button>
-            {Array.from({ length: pageCount }, (_, index) => index + 1).map(
-              (pageNumber) => (
-                <button
-                  type="button"
-                  key={pageNumber}
-                  className={page === pageNumber ? "current" : ""}
-                  aria-current={page === pageNumber ? "page" : undefined}
-                  onClick={() => setPage(pageNumber)}
-                >
-                  {pageNumber}
-                </button>
-              ),
-            )}
-            <button
-              type="button"
-              disabled={page === pageCount}
-              onClick={() => setPage((current) => current + 1)}
-              aria-label="Następna strona"
-            >
-              →
-            </button>
-          </nav>
-        )}
+        <Pagination
+          page={currentPage}
+          pageCount={pageCount}
+          onPageChange={setPage}
+        />
       </section>
 
       <footer className="footer">
