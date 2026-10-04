@@ -5,127 +5,42 @@ const THEME_KEY = "studytrack-theme";
 const PAGE_SIZE = 5;
 
 const starterTopics = [
-  {
-    id: 1,
-    subject: "Biologia",
-    title: "Fotosynteza i oddychanie komórkowe",
-    dueDate: "2026-10-05",
-    minutes: 45,
-    difficulty: "Średni",
-    priority: "Wysoki",
-    status: "W trakcie",
-  },
-  {
-    id: 2,
-    subject: "Matematyka",
-    title: "Funkcje kwadratowe",
-    dueDate: "2026-10-07",
-    minutes: 60,
-    difficulty: "Trudny",
-    priority: "Wysoki",
-    status: "Do zrobienia",
-  },
-  {
-    id: 3,
-    subject: "Historia",
-    title: "Europa po kongresie wiedeńskim",
-    dueDate: "2026-10-09",
-    minutes: 35,
-    difficulty: "Średni",
-    priority: "Normalny",
-    status: "Do zrobienia",
-  },
-  {
-    id: 4,
-    subject: "Angielski",
-    title: "Phrasal verbs: praca i podróże",
-    dueDate: "2026-10-11",
-    minutes: 25,
-    difficulty: "Łatwy",
-    priority: "Niski",
-    status: "Zrobione",
-  },
-  {
-    id: 5,
-    subject: "Chemia",
-    title: "Reakcje utleniania i redukcji",
-    dueDate: "2026-10-12",
-    minutes: 50,
-    difficulty: "Trudny",
-    priority: "Wysoki",
-    status: "W trakcie",
-  },
-  {
-    id: 6,
-    subject: "Fizyka",
-    title: "Zasady dynamiki Newtona",
-    dueDate: "2026-10-14",
-    minutes: 40,
-    difficulty: "Średni",
-    priority: "Normalny",
-    status: "Do zrobienia",
-  },
-  {
-    id: 7,
-    subject: "Polski",
-    title: "„Lalka” — obraz społeczeństwa",
-    dueDate: "2026-10-16",
-    minutes: 55,
-    difficulty: "Trudny",
-    priority: "Wysoki",
-    status: "Do zrobienia",
-  },
-  {
-    id: 8,
-    subject: "Geografia",
-    title: "Procesy kształtujące klimat",
-    dueDate: "2026-10-18",
-    minutes: 30,
-    difficulty: "Łatwy",
-    priority: "Niski",
-    status: "Zrobione",
-  },
-  {
-    id: 9,
-    subject: "Matematyka",
-    title: "Ciągi arytmetyczne i geometryczne",
-    dueDate: "2026-10-20",
-    minutes: 45,
-    difficulty: "Średni",
-    priority: "Normalny",
-    status: "Do zrobienia",
-  },
-  {
-    id: 10,
-    subject: "Biologia",
-    title: "Dziedziczenie cech — podstawy genetyki",
-    dueDate: "2026-10-22",
-    minutes: 60,
-    difficulty: "Trudny",
-    priority: "Wysoki",
-    status: "W trakcie",
-  },
-  {
-    id: 11,
-    subject: "Angielski",
-    title: "Conditionals: okresy warunkowe",
-    dueDate: "2026-10-24",
-    minutes: 35,
-    difficulty: "Średni",
-    priority: "Normalny",
-    status: "Do zrobienia",
-  },
-  {
-    id: 12,
-    subject: "Chemia",
-    title: "Wiązania chemiczne i ich właściwości",
-    dueDate: "2026-10-26",
-    minutes: 40,
-    difficulty: "Średni",
-    priority: "Niski",
-    status: "Do zrobienia",
-  },
-];
+  ["Biologia", "Fotosynteza i oddychanie komórkowe", "2026-10-05", 45,
+    "Średni", "Wysoki", "W trakcie"],
+  ["Matematyka", "Funkcje kwadratowe", "2026-10-07", 60,
+    "Trudny", "Wysoki", "Do zrobienia"],
+  ["Historia", "Europa po kongresie wiedeńskim", "2026-10-09", 35,
+    "Średni", "Normalny", "Do zrobienia"],
+  ["Angielski", "Phrasal verbs: praca i podróże", "2026-10-11", 25,
+    "Łatwy", "Niski", "Zrobione"],
+  ["Chemia", "Reakcje utleniania i redukcji", "2026-10-12", 50,
+    "Trudny", "Wysoki", "W trakcie"],
+  ["Fizyka", "Zasady dynamiki Newtona", "2026-10-14", 40,
+    "Średni", "Normalny", "Do zrobienia"],
+  ["Polski", "„Lalka” — obraz społeczeństwa", "2026-10-16", 55,
+    "Trudny", "Wysoki", "Do zrobienia"],
+  ["Geografia", "Procesy kształtujące klimat", "2026-10-18", 30,
+    "Łatwy", "Niski", "Zrobione"],
+  ["Matematyka", "Ciągi arytmetyczne i geometryczne", "2026-10-20", 45,
+    "Średni", "Normalny", "Do zrobienia"],
+  ["Biologia", "Dziedziczenie cech — podstawy genetyki", "2026-10-22", 60,
+    "Trudny", "Wysoki", "W trakcie"],
+  ["Angielski", "Conditionals: okresy warunkowe", "2026-10-24", 35,
+    "Średni", "Normalny", "Do zrobienia"],
+  ["Chemia", "Wiązania chemiczne i ich właściwości", "2026-10-26", 40,
+    "Średni", "Niski", "Do zrobienia"],
+].map(
+  ([subject, title, dueDate, minutes, difficulty, priority, status], index) => ({
+    id: index + 1,
+    subject,
+    title,
+    dueDate,
+    minutes,
+    difficulty,
+    priority,
+    status,
+  }),
+);
 
 const emptyForm = {
   subject: "",
@@ -187,7 +102,6 @@ function Dialog({ children, titleId, onClose, isAlert = false, className = "" })
     </div>
   );
 }
-
 function TopicDialog({ topic, onClose, onSave }) {
   const [form, setForm] = useState(
     topic
@@ -548,11 +462,23 @@ export default function App() {
     setPage(1);
   }
 
+  const completedCount = topics.filter(
+    (topic) => topic.status === "Zrobione",
+  ).length;
+  const activeCount = topics.length - completedCount;
+  const completionRate =
+    topics.length === 0 ? 0 : Math.round((completedCount / topics.length) * 100);
+
   return (
     <main className="app-shell">
       <header className="topbar">
-        <h1>StudyTrack</h1>
-        <p>Plan nauki</p>
+        <div className="brand-lockup">
+          <span className="brand-mark" aria-hidden="true">S</span>
+          <div>
+            <h1>StudyTrack</h1>
+            <p>Twój spokojny plan nauki</p>
+          </div>
+        </div>
         <button
           className="theme-toggle"
           type="button"
@@ -567,8 +493,70 @@ export default function App() {
       </header>
 
       <section className="workspace" aria-label="Plan nauki">
+        <div className="welcome-panel">
+          <div className="welcome-copy">
+            <span className="eyebrow">MAŁE KROKI, DUŻY POSTĘP</span>
+            <h2>Nauka pod kontrolą.</h2>
+            <p>
+              Wszystko, czego potrzebujesz, żeby uczyć się we własnym tempie.
+            </p>
+          </div>
+          <div className="progress-card">
+            <div className="progress-card-heading">
+              <span>Twój postęp</span>
+              <strong>{completionRate}%</strong>
+            </div>
+            <div
+              className="progress-track"
+              role="progressbar"
+              aria-label="Ukończone tematy"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow={completionRate}
+            >
+              <span style={{ width: `${completionRate}%` }} />
+            </div>
+            <p>
+              Tematy ukończone: {completedCount} / {topics.length}
+            </p>
+          </div>
+        </div>
+
+        <div className="summary-grid" aria-label="Podsumowanie planu">
+          <article className="summary-card">
+            <span className="summary-icon icon-planned" aria-hidden="true">
+              ✳
+            </span>
+            <div>
+              <span>W planie</span>
+              <strong>{topics.length}</strong>
+            </div>
+          </article>
+          <article className="summary-card">
+            <span className="summary-icon icon-active" aria-hidden="true">
+              ↗
+            </span>
+            <div>
+              <span>Aktywne</span>
+              <strong>{activeCount}</strong>
+            </div>
+          </article>
+          <article className="summary-card">
+            <span className="summary-icon icon-completed" aria-hidden="true">
+              ✓
+            </span>
+            <div>
+              <span>Ukończone</span>
+              <strong>{completedCount}</strong>
+            </div>
+          </article>
+        </div>
+
         <div className="section-heading">
-          <h2>Tematy do nauki</h2>
+          <div>
+            <span className="eyebrow">TWÓJ WORKSPACE</span>
+            <h2>Tematy do nauki</h2>
+          </div>
           <button
             className="primary add-button"
             type="button"
