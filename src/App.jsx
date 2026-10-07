@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 
 const STORAGE_KEY = "studytrack-topics";
-const THEME_KEY = "studytrack-theme";
 const PAGE_SIZE = 5;
 
 const starterTopics = [
@@ -346,13 +345,6 @@ function Pagination({ page, pageCount, onPageChange }) {
 
 export default function App() {
   const [topics, setTopics] = useState(readTopics);
-  const [theme, setTheme] = useState(() => {
-    try {
-      return localStorage.getItem(THEME_KEY) === "dark" ? "dark" : "light";
-    } catch {
-      return "light";
-    }
-  });
   const [search, setSearch] = useState("");
   const [subjectFilter, setSubjectFilter] = useState("Wszystkie przedmioty");
   const [statusFilter, setStatusFilter] = useState("Wszystkie statusy");
@@ -366,13 +358,6 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(topics));
   }, [topics]);
-
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-    try {
-      localStorage.setItem(THEME_KEY, theme);
-    } catch {}
-  }, [theme]);
 
   const subjects = useMemo(
     () =>
@@ -479,17 +464,6 @@ export default function App() {
             <p>Twój spokojny plan nauki</p>
           </div>
         </div>
-        <button
-          className="theme-toggle"
-          type="button"
-          aria-pressed={theme === "dark"}
-          onClick={() =>
-            setTheme((current) => (current === "dark" ? "light" : "dark"))
-          }
-        >
-          <span aria-hidden="true">{theme === "dark" ? "☀" : "☾"}</span>
-          {theme === "dark" ? "Tryb jasny" : "Tryb ciemny"}
-        </button>
       </header>
 
       <section className="workspace" aria-label="Plan nauki">
