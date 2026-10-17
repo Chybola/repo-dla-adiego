@@ -1,728 +1,277 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
-const STORAGE_KEY = "studytrack-topics";
 const PAGE_SIZE = 5;
 
-const starterTopics = [
-  ["Biologia", "Fotosynteza i oddychanie komórkowe", "2026-10-05", 45,
-    "Średni", "Wysoki", "W trakcie"],
-  ["Matematyka", "Funkcje kwadratowe", "2026-10-07", 60,
-    "Trudny", "Wysoki", "Do zrobienia"],
-  ["Historia", "Europa po kongresie wiedeńskim", "2026-10-09", 35,
-    "Średni", "Normalny", "Do zrobienia"],
-  ["Angielski", "Phrasal verbs: praca i podróże", "2026-10-11", 25,
-    "Łatwy", "Niski", "Zrobione"],
-  ["Chemia", "Reakcje utleniania i redukcji", "2026-10-12", 50,
-    "Trudny", "Wysoki", "W trakcie"],
-  ["Fizyka", "Zasady dynamiki Newtona", "2026-10-14", 40,
-    "Średni", "Normalny", "Do zrobienia"],
-  ["Polski", "„Lalka” — obraz społeczeństwa", "2026-10-16", 55,
-    "Trudny", "Wysoki", "Do zrobienia"],
-  ["Geografia", "Procesy kształtujące klimat", "2026-10-18", 30,
-    "Łatwy", "Niski", "Zrobione"],
-  ["Matematyka", "Ciągi arytmetyczne i geometryczne", "2026-10-20", 45,
-    "Średni", "Normalny", "Do zrobienia"],
-  ["Biologia", "Dziedziczenie cech — podstawy genetyki", "2026-10-22", 60,
-    "Trudny", "Wysoki", "W trakcie"],
-  ["Angielski", "Conditionals: okresy warunkowe", "2026-10-24", 35,
-    "Średni", "Normalny", "Do zrobienia"],
-  ["Chemia", "Wiązania chemiczne i ich właściwości", "2026-10-26", 40,
-    "Średni", "Niski", "Do zrobienia"],
-].map(
-  ([subject, title, dueDate, minutes, difficulty, priority, status], index) => ({
-    id: index + 1,
-    subject,
-    title,
-    dueDate,
-    minutes,
-    difficulty,
-    priority,
-    status,
-  }),
-);
+const startTopics = [
+  { id: 1, subject: "Biologia", title: "Fotosynteza", dueDate: "2026-10-05", minutes: 45, priority: "Wysoki", status: "W trakcie" },
+  { id: 2, subject: "Matematyka", title: "Funkcje kwadratowe", dueDate: "2026-10-07", minutes: 60, priority: "Wysoki", status: "Do zrobienia" },
+  { id: 3, subject: "Historia", title: "Kongres wiedeński", dueDate: "2026-10-09", minutes: 35, priority: "Normalny", status: "Do zrobienia" },
+  { id: 4, subject: "Angielski", title: "Phrasal verbs", dueDate: "2026-10-11", minutes: 25, priority: "Niski", status: "Zrobione" },
+  { id: 5, subject: "Chemia", title: "Reakcje redoks", dueDate: "2026-10-12", minutes: 50, priority: "Wysoki", status: "W trakcie" },
+  { id: 6, subject: "Fizyka", title: "Zasady dynamiki", dueDate: "2026-10-14", minutes: 40, priority: "Normalny", status: "Do zrobienia" },
+  { id: 7, subject: "Polski", title: "Lalka", dueDate: "2026-10-16", minutes: 55, priority: "Wysoki", status: "Do zrobienia" },
+  { id: 8, subject: "Geografia", title: "Klimat", dueDate: "2026-10-18", minutes: 30, priority: "Niski", status: "Zrobione" },
+  { id: 9, subject: "Matematyka", title: "Ciągi", dueDate: "2026-10-20", minutes: 45, priority: "Normalny", status: "Do zrobienia" },
+  { id: 10, subject: "Biologia", title: "Genetyka", dueDate: "2026-10-22", minutes: 60, priority: "Wysoki", status: "W trakcie" },
+  { id: 11, subject: "Angielski", title: "Okresy warunkowe", dueDate: "2026-10-24", minutes: 35, priority: "Normalny", status: "Do zrobienia" },
+  { id: 12, subject: "Chemia", title: "Wiązania chemiczne", dueDate: "2026-10-26", minutes: 40, priority: "Niski", status: "Do zrobienia" },
+];
 
 const emptyForm = {
   subject: "",
   title: "",
   dueDate: "",
-  minutes: "30",
-  difficulty: "Średni",
+  minutes: 30,
   priority: "Normalny",
   status: "Do zrobienia",
   needsReview: false,
   studyType: "Czytanie",
 };
 
-const statusClass = {
-  "Do zrobienia": "todo",
-  "W trakcie": "progress",
-  Zrobione: "done",
-};
-
-function readTopics() {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? JSON.parse(saved) : starterTopics;
-  } catch {
-    return starterTopics;
-  }
-}
-
-function formatDate(date) {
-  if (!date) return "Bez terminu";
-  return new Intl.DateTimeFormat("pl-PL", {
-    day: "numeric",
-    month: "short",
-  }).format(new Date(`${date}T12:00:00`));
-}
-
-function Dialog({ children, titleId, onClose, isAlert = false, className = "" }) {
-  useEffect(() => {
-    function handleKeyDown(event) {
-      if (event.key === "Escape") onClose();
-    }
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
-
+// okno 
+function Dialog({ children }) {
   return (
-    <div
-      className="overlay"
-      onMouseDown={(event) => event.target === event.currentTarget && onClose()}
-    >
-      <section
-        className={`dialog ${className}`.trim()}
-        role={isAlert ? "alertdialog" : "dialog"}
-        aria-modal="true"
-        aria-labelledby={titleId}
-      >
-        {children}
-      </section>
+    <div className="overlay">
+      <div className="dialog">{children}</div>
     </div>
   );
 }
-function TopicDialog({ topic, onClose, onSave }) {
-  const [form, setForm] = useState(
-    topic
-      ? {
-          ...emptyForm,
-          ...topic,
-          minutes: String(topic.minutes),
-          needsReview: topic.needsReview ?? false,
-          studyType: topic.studyType ?? "Czytanie",
-        }
-      : emptyForm,
-  );
+
+function TopicForm({ topic, onClose, onSave }) {
+  const [form, setForm] = useState(topic || emptyForm);
   const [error, setError] = useState("");
 
-  function update(field, value) {
-    setForm((current) => ({ ...current, [field]: value }));
+  function change(e) {
+    const { name, value, type, checked } = e.target;
+    setForm({ ...form, [name]: type === "checkbox" ? checked : value });
   }
 
-  function submit(event) {
-    event.preventDefault();
-    if (!form.subject.trim() || !form.title.trim() || !form.dueDate) {
+  function submit(e) {
+    e.preventDefault();
+    if (!form.subject || !form.title || !form.dueDate) {
       setError("Uzupełnij przedmiot, temat i termin.");
       return;
     }
-    const minutes = Number(form.minutes);
-    if (!Number.isInteger(minutes) || minutes < 5 || minutes > 600) {
-      setError("Czas nauki musi wynosić od 5 do 600 minut.");
-      return;
-    }
-    onSave({
-      ...form,
-      subject: form.subject.trim(),
-      title: form.title.trim(),
-      minutes,
-    });
+    onSave({ ...form, minutes: Number(form.minutes) });
   }
 
   return (
-    <Dialog titleId="topic-dialog-title" onClose={onClose}>
-        <div className="dialog-head">
-          <div>
-            <span className="eyebrow">PLAN NAUKI</span>
-            <h2 id="topic-dialog-title">
-              {topic ? "Edytuj temat" : "Dodaj temat"}
-            </h2>
-          </div>
-          <button
-            className="icon-button"
-            type="button"
-            aria-label="Zamknij"
-            onClick={onClose}
-          >
-            ×
-          </button>
-        </div>
-        <form onSubmit={submit} noValidate>
-          <label>
-            Przedmiot
-            <input
-              autoFocus
-              value={form.subject}
-              onChange={(event) => update("subject", event.target.value)}
-              placeholder="np. Biologia"
-            />
-          </label>
-          <label>
-            Temat
-            <input
-              value={form.title}
-              onChange={(event) => update("title", event.target.value)}
-              placeholder="Czego chcesz się nauczyć?"
-            />
-          </label>
-          <div className="form-grid">
-            <label>
-              Termin
-              <input
-                type="date"
-                value={form.dueDate}
-                onChange={(event) => update("dueDate", event.target.value)}
-              />
-            </label>
-            <label>
-              Czas (min)
-              <input
-                type="number"
-                min="5"
-                max="600"
-                step="5"
-                value={form.minutes}
-                onChange={(event) => update("minutes", event.target.value)}
-              />
-            </label>
-          </div>
-          <div className="form-grid">
-            <label>
-              Trudność
-              <select
-                value={form.difficulty}
-                onChange={(event) => update("difficulty", event.target.value)}
-              >
-                <option>Łatwy</option>
-                <option>Średni</option>
-                <option>Trudny</option>
-              </select>
-            </label> 
-            <label>
-              Priorytet
-              <select
-                value={form.priority}
-                onChange={(event) => update("priority", event.target.value)}
-              >
-                <option>Niski</option>
-                <option>Normalny</option>
-                <option>Wysoki</option>
-              </select>
-            </label>
-          </div>
-          <label>
-            Status
-            <select
-              value={form.status}
-              onChange={(event) => update("status", event.target.value)}
-            >
-              <option>Do zrobienia</option>
-              <option>W trakcie</option>
-              <option>Zrobione</option>
-            </select>
-          </label>
-          <label className="checkbox-field">
-            <input
-              type="checkbox"
-              checked={form.needsReview}
-              onChange={(event) => update("needsReview", event.target.checked)}
-            />
-            Powtórzyć temat przed terminem
-          </label>
-          <fieldset className="radio-field">
-            <legend>Forma nauki</legend>
-            {[
-              ["Czytanie", "Czytanie notatek"],
-              ["Ćwiczenia", "Rozwiązywanie ćwiczeń"],
-            ].map(([value, label]) => (
-              <label key={value}>
-                <input
-                  type="radio"
-                  name="studyType"
-                  value={value}
-                  checked={form.studyType === value}
-                  onChange={(event) => update("studyType", event.target.value)}
-                />
-                {label}
-              </label>
-            ))}
-          </fieldset>
-          {error && (
-            <p className="error" role="alert">
-              {error}
-            </p>
-          )}
-          <div className="buttons">
-            <button
-              className="secondary-button"
-              type="button"
-              onClick={onClose}
-            >
-              Anuluj
-            </button>
-            <button className="primary" type="submit">
-              {topic ? "Zapisz zmiany" : "Dodaj do planu"}{" "}
-              <span aria-hidden="true">→</span>
-            </button>
-          </div>
-        </form>
-    </Dialog>
-  );
-}
-
-function DeleteDialog({ topic, onCancel, onConfirm }) {
-  return (
-    <Dialog
-      titleId="delete-title"
-      onClose={onCancel}
-      isAlert
-      className="confirm-dialog"
-    >
-        <span className="eyebrow">USUWANIE TEMATU</span>
-        <h2 id="delete-title">Na pewno usunąć?</h2>
-        <p>
-          „{topic.title}” z przedmiotu {topic.subject} zostanie usunięty z
-          Twojego planu.
-        </p>
-        <div className="buttons">
-          <button className="secondary-button" type="button" onClick={onCancel}>
-            Zostaw temat
-          </button>
-          <button className="danger-button" type="button" onClick={onConfirm}>
-            Usuń temat
-          </button>
-        </div>
-    </Dialog>
-  );
-}
-
-function Pagination({ page, pageCount, onPageChange }) {
-  if (pageCount < 2) return null;
-
-  return (
-    <nav className="pagination" aria-label="Strony listy tematów">
-      <button
-        type="button"
-        disabled={page === 1}
-        onClick={() => onPageChange(page - 1)}
-        aria-label="Poprzednia strona"
-      >
-        ←
-      </button>
-      {Array.from({ length: pageCount }, (_, index) => index + 1).map(
-        (pageNumber) => (
-          <button
-            type="button"
-            key={pageNumber}
-            className={page === pageNumber ? "current" : ""}
-            aria-current={page === pageNumber ? "page" : undefined}
-            onClick={() => onPageChange(pageNumber)}
-          >
-            {pageNumber}
-          </button>
-        ),
-      )}
-      <button
-        type="button"
-        disabled={page === pageCount}
-        onClick={() => onPageChange(page + 1)}
-        aria-label="Następna strona"
-      >
-        →
-      </button>
-    </nav>
-  );
-}
-
-export default function App() {
-  const [topics, setTopics] = useState(readTopics);
-  const [search, setSearch] = useState("");
-  const [subjectFilter, setSubjectFilter] = useState("Wszystkie przedmioty");
-  const [statusFilter, setStatusFilter] = useState("Wszystkie statusy");
-  const [sortField, setSortField] = useState("timeUntil");
-  const [sortDirection, setSortDirection] = useState("asc");
-  const [page, setPage] = useState(1);
-  const [editingTopic, setEditingTopic] = useState(null);
-  const [isAdding, setIsAdding] = useState(false);
-  const [deletingTopic, setDeletingTopic] = useState(null);
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(topics));
-  }, [topics]);
-
-  const subjects = useMemo(
-    () =>
-      [...new Set(topics.map((topic) => topic.subject))].sort((a, b) =>
-        a.localeCompare(b, "pl"),
-      ),
-    [topics],
-  );
-  const filteredTopics = useMemo(() => {
-    const query = search.trim().toLocaleLowerCase("pl");
-    return topics
-      .filter((topic) =>
-        `${topic.subject} ${topic.title}`
-          .toLocaleLowerCase("pl")
-          .includes(query),
-      )
-      .filter(
-        (topic) =>
-          subjectFilter === "Wszystkie przedmioty" ||
-          topic.subject === subjectFilter,
-      )
-      .filter(
-        (topic) =>
-          statusFilter === "Wszystkie statusy" || topic.status === statusFilter,
-      )
-      .sort((first, second) => {
-        const firstValue =
-          sortField === "timeUntil"
-            ? new Date(`${first.dueDate}T00:00:00`).getTime() - Date.now()
-            : first[sortField];
-        const secondValue =
-          sortField === "timeUntil"
-            ? new Date(`${second.dueDate}T00:00:00`).getTime() - Date.now()
-            : second[sortField];
-        const comparison =
-          typeof firstValue === "string"
-            ? firstValue.localeCompare(secondValue, "pl")
-            : firstValue - secondValue;
-        return sortDirection === "asc" ? comparison : -comparison;
-      });
-  }, [topics, search, subjectFilter, statusFilter, sortField, sortDirection]);
-
-  const pageCount = Math.max(1, Math.ceil(filteredTopics.length / PAGE_SIZE));
-  const currentPage = Math.min(page, pageCount);
-  const visibleTopics = filteredTopics.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE,
-  );
-
-  useEffect(() => {
-    if (page !== currentPage) setPage(currentPage);
-  }, [page, currentPage]);
-  function saveTopic(values) {
-    if (editingTopic) {
-      setTopics((current) =>
-        current.map((topic) =>
-          topic.id === editingTopic.id ? { ...topic, ...values } : topic,
-        ),
-      );
-      setEditingTopic(null);
-    } else {
-      setTopics((current) => [{ ...values, id: Date.now() }, ...current]);
-      setIsAdding(false);
-    }
-    setPage(1);
-  }
-
-  function removeTopic() {
-    setTopics((current) =>
-      current.filter((topic) => topic.id !== deletingTopic.id),
-    );
-    setDeletingTopic(null);
-  }
-
-  function toggleStatus(topic) {
-    const nextStatus =
-      topic.status === "Zrobione" ? "Do zrobienia" : "Zrobione";
-    setTopics((current) =>
-      current.map((item) =>
-        item.id === topic.id ? { ...item, status: nextStatus } : item,
-      ),
-    );
-  }
-
-  function resetPageOn(setter, value) {
-    setter(value);
-    setPage(1);
-  }
-
-  const completedCount = topics.filter(
-    (topic) => topic.status === "Zrobione",
-  ).length;
-  const activeCount = topics.length - completedCount;
-  const completionRate =
-    topics.length === 0 ? 0 : Math.round((completedCount / topics.length) * 100);
-
-  return (
-    <main className="app-shell">
-      <header className="topbar">
-        <div className="brand-lockup">
-          <span className="brand-mark" aria-hidden="true">S</span>
-          <div>
-            <h1>StudyTrack</h1>
-            <p>Twój spokojny plan nauki</p>
-          </div>
-        </div>
-      </header>
-
-      <section className="workspace" aria-label="Plan nauki">
-        <div className="welcome-panel">
-          <div className="welcome-copy">
-            <span className="eyebrow">MAŁE KROKI, DUŻY POSTĘP</span>
-            <h2>Nauka pod kontrolą.</h2>
-            <p>
-              Wszystko, czego potrzebujesz, żeby uczyć się we własnym tempie.
-            </p>
-          </div>
-          <div className="progress-card">
-            <div className="progress-card-heading">
-              <span>Twój postęp</span>
-              <strong>{completionRate}%</strong>
-            </div>
-            <div
-              className="progress-track"
-              role="progressbar"
-              aria-label="Ukończone tematy"
-              aria-valuemin="0"
-              aria-valuemax="100"
-              aria-valuenow={completionRate}
-            >
-              <span style={{ width: `${completionRate}%` }} />
-            </div>
-            <p>
-              Tematy ukończone: {completedCount} / {topics.length}
-            </p>
-          </div>
-        </div>
-
-        <div className="summary-grid" aria-label="Podsumowanie planu">
-          <article className="summary-card">
-            <span className="summary-icon icon-planned" aria-hidden="true">
-              ✳
-            </span>
-            <div>
-              <span>W planie</span>
-              <strong>{topics.length}</strong>
-            </div>
-          </article>
-          <article className="summary-card">
-            <span className="summary-icon icon-active" aria-hidden="true">
-              ↗
-            </span>
-            <div>
-              <span>Aktywne</span>
-              <strong>{activeCount}</strong>
-            </div>
-          </article>
-          <article className="summary-card">
-            <span className="summary-icon icon-completed" aria-hidden="true">
-              ✓
-            </span>
-            <div>
-              <span>Ukończone</span>
-              <strong>{completedCount}</strong>
-            </div>
-          </article>
-        </div>
-
-        <div className="section-heading">
-          <div>
-            <span className="eyebrow">TWÓJ WORKSPACE</span>
-            <h2>Tematy do nauki</h2>
-          </div>
-          <button
-            className="primary add-button"
-            type="button"
-            onClick={() => setIsAdding(true)}
-          >
-            <span aria-hidden="true">+</span> Dodaj temat
-          </button>
-        </div>
-
-        <div className="filter-panel">
-          <label className="search-field">
-            <input
-              value={search}
-              onChange={(event) => resetPageOn(setSearch, event.target.value)}
-              placeholder="Szukaj przedmiotu lub tematu"
-              aria-label="Szukaj przedmiotu lub tematu"
-            />
-          </label>
-          <label className="visually-hidden" htmlFor="subject-filter">
-            Filtruj przedmiot
-          </label>
-          <select
-            id="subject-filter"
-            value={subjectFilter}
-            onChange={(event) =>
-              resetPageOn(setSubjectFilter, event.target.value)
-            }
-          >
-            <option>Wszystkie przedmioty</option>
-            {subjects.map((subject) => (
-              <option key={subject}>{subject}</option>
-            ))}
+    <Dialog>
+      <h2>{topic ? "Edytuj temat" : "Dodaj temat"}</h2>
+      <form onSubmit={submit}>
+        <label>
+          Przedmiot
+          <input name="subject" value={form.subject} onChange={change} />
+        </label>
+        <label>
+          Temat
+          <input name="title" value={form.title} onChange={change} />
+        </label>
+        <label>
+          Termin
+          <input type="date" name="dueDate" value={form.dueDate} onChange={change} />
+        </label>
+        <label>
+          Czas (min)
+          <input type="number" name="minutes" min="5" value={form.minutes} onChange={change} />
+        </label>
+        <label>
+          Priorytet
+          <select name="priority" value={form.priority} onChange={change}>
+            <option>Niski</option>
+            <option>Normalny</option>
+            <option>Wysoki</option>
           </select>
-          <label className="visually-hidden" htmlFor="status-filter">
-            Filtruj status
-          </label>
-          <select
-            id="status-filter"
-            value={statusFilter}
-            onChange={(event) =>
-              resetPageOn(setStatusFilter, event.target.value)
-            }
-          >
-            <option>Wszystkie statusy</option>
+        </label>
+        <label>
+          Status
+          <select name="status" value={form.status} onChange={change}>
             <option>Do zrobienia</option>
             <option>W trakcie</option>
             <option>Zrobione</option>
           </select>
-          <label className="visually-hidden" htmlFor="sort-field">
-            Sortuj według
-          </label>
-          <select
-            id="sort-field"
-            value={sortField}
-            onChange={(event) => setSortField(event.target.value)}
-          >
-            <option value="minutes">Czas nauki</option>
-            <option value="title">Temat</option>
-            <option value="subject">Przedmiot</option>
-            <option value="timeUntil">Czas do terminu</option>
-          </select>
-          <label className="visually-hidden" htmlFor="sort-direction">
-            Kierunek sortowania
-          </label>
-          <select
-            id="sort-direction"
-            value={sortDirection}
-            onChange={(event) => setSortDirection(event.target.value)}
-          >
-            <option value="asc">Rosnąco</option>
-            <option value="desc">Malejąco</option>
-          </select>
+        </label>
+        <label className="inline">
+          <input type="checkbox" name="needsReview" checked={form.needsReview} onChange={change} />
+          Powtórzyć przed terminem
+        </label>
+        <label className="inline">
+          <input type="radio" name="studyType" value="Czytanie" checked={form.studyType === "Czytanie"} onChange={change} />
+          Czytanie notatek
+        </label>
+        <label className="inline">
+          <input type="radio" name="studyType" value="Ćwiczenia" checked={form.studyType === "Ćwiczenia"} onChange={change} />
+          Rozwiązywanie ćwiczeń
+        </label>
+        {error && <p className="error">{error}</p>}
+        <div className="buttons">
+          <button type="button" onClick={onClose}>Anuluj</button>
+          <button className="primary">Zapisz</button>
         </div>
+      </form>
+    </Dialog>
+  );
+}
 
-        <div className="list-meta">
-          <span className="count">
-            {filteredTopics.length === 0 ? (
-              "Brak tematów"
-            ) : (
-              <>
-                Wyniki{" "}
-                <strong>
-                  {(currentPage - 1) * PAGE_SIZE + 1}–
-                  {Math.min(currentPage * PAGE_SIZE, filteredTopics.length)}
-                </strong>{" "}
-                z <strong>{filteredTopics.length}</strong>
-              </>
-            )}
-          </span>
-        </div>
+// paginacja
+function Pagination({ page, pageCount, onChange }) {
+  const pages = [];
+  for (let i = 1; i <= pageCount; i++) pages.push(i);
 
-        <div className="topic-list">
-          <div className="list-header">
-            <span>PRZEDMIOT / TEMAT</span>
-            <span>TERMIN</span>
-            <span>PRIORYTET</span>
-            <span>STATUS</span>
-            <span className="visually-hidden">Akcje</span>
-          </div>
-          {visibleTopics.map((topic) => (
-            <article
-              className={`topic-row ${topic.status === "Zrobione" ? "is-done" : ""}`}
-              key={topic.id}
-            >
-              <button
-                className={`check-button ${topic.status === "Zrobione" ? "checked" : ""}`}
-                type="button"
-                onClick={() => toggleStatus(topic)}
-                aria-label={
-                  topic.status === "Zrobione"
-                    ? `Oznacz ${topic.title} jako do zrobienia`
-                    : `Oznacz ${topic.title} jako zrobione`
-                }
-              >
-                {topic.status === "Zrobione" ? "✓ " : ""}
-              </button>
-              <div className="topic-name">
-                <span className="subject-label">{topic.subject}</span>
-                <strong>{topic.title}</strong>
-                <span className="topic-detail">
-                  {topic.minutes} min <span aria-hidden="true">·</span>{" "}
-                  {topic.difficulty}
-                </span>
-              </div>
-              <time className="due-date" dateTime={topic.dueDate}>
-                {formatDate(topic.dueDate)}
-              </time>
-              <span
-                className={`priority priority-${topic.priority.toLocaleLowerCase("pl")}`}
-              >
-                {topic.priority}
-              </span>
-              <span className={`status status-${statusClass[topic.status]}`}>
-                {topic.status}
-              </span>
-              <div className="row-actions">
-                <button
-                  type="button"
-                  onClick={() => setEditingTopic(topic)}
-                  aria-label={`Edytuj ${topic.title}`}
-                  title="Edytuj"
-                >
-                  Edytuj
-                </button>
-                <button
-                  className="delete-action"
-                  type="button"
-                  onClick={() => setDeletingTopic(topic)}
-                  aria-label={`Usuń ${topic.title}`}
-                  title="Usuń"
-                >
-                  Usuń
-                </button>
-              </div>
-            </article>
-          ))}
-          {filteredTopics.length === 0 && (
-            <div className="empty-state">
-              <span aria-hidden="true">⌕</span>
-              <strong>Nic tu nie ma</strong>
-              <p>Zmień filtry albo dodaj nowy temat do planu.</p>
-            </div>
-          )}
-        </div>
+  return (
+    <div className="pagination">
+      {pages.map((p) => (
+        <button key={p} className={p === page ? "primary" : ""} onClick={() => onChange(p)}>
+          {p}
+        </button>
+      ))}
+    </div>
+  );
+}
 
-        <Pagination
-          page={currentPage}
-          pageCount={pageCount}
-          onPageChange={setPage}
-        />
-      </section>
+export default function App() {
+  const [topics, setTopics] = useState(() => JSON.parse(localStorage.getItem("topics")) || startTopics);
+  const [search, setSearch] = useState("");
+  const [subject, setSubject] = useState("");
+  const [status, setStatus] = useState("");
+  const [sortBy, setSortBy] = useState("dueDate");
+  const [sortDir, setSortDir] = useState("asc");
+  const [page, setPage] = useState(1);
+  const [editing, setEditing] = useState(null);
+  const [deleting, setDeleting] = useState(null);
 
-      <footer className="footer">
-        <span>StudyTrack</span>
-      </footer>
+  useEffect(() => {
+    localStorage.setItem("topics", JSON.stringify(topics));
+  }, [topics]);
 
-      {(isAdding || editingTopic) && (
-        <TopicDialog
-          topic={editingTopic}
-          onClose={() => {
-            setIsAdding(false);
-            setEditingTopic(null);
+  const subjects = [...new Set(topics.map((t) => t.subject))];
+
+  // filtrowanie i sortowanie
+  const filtered = topics
+    .filter((t) => (t.subject + t.title).toLowerCase().includes(search.toLowerCase()))
+    .filter((t) => !subject || t.subject === subject)
+    .filter((t) => !status || t.status === status)
+    .sort((a, b) => {
+      const result = sortBy === "minutes" ? a.minutes - b.minutes : a[sortBy].localeCompare(b[sortBy]);
+      return sortDir === "asc" ? result : -result;
+    });
+
+  const pageCount = Math.ceil(filtered.length / PAGE_SIZE);
+  const visible = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  function saveTopic(values) {
+    if (values.id) {
+      setTopics(topics.map((t) => (t.id === values.id ? values : t)));
+    } else {
+      setTopics([{ ...values, id: Date.now() }, ...topics]);
+    }
+    setEditing(null);
+  }
+
+  function deleteTopic() {
+    setTopics(topics.filter((t) => t.id !== deleting.id));
+    setDeleting(null);
+    setPage(1);
+  }
+
+  return (
+    <main>
+      <h1>StudyTrack</h1>
+
+      <div className="filters">
+        <input
+          placeholder="Szukaj..."
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
           }}
-          onSave={saveTopic}
         />
+        <select
+          value={subject}
+          onChange={(e) => {
+            setSubject(e.target.value);
+            setPage(1);
+          }}
+        >
+          <option value="">Wszystkie przedmioty</option>
+          {subjects.map((s) => (
+            <option key={s}>{s}</option>
+          ))}
+        </select>
+        <select
+          value={status}
+          onChange={(e) => {
+            setStatus(e.target.value);
+            setPage(1);
+          }}
+        >
+          <option value="">Wszystkie statusy</option>
+          <option>Do zrobienia</option>
+          <option>W trakcie</option>
+          <option>Zrobione</option>
+        </select>
+        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+          <option value="dueDate">Termin</option>
+          <option value="minutes">Czas nauki</option>
+          <option value="title">Temat</option>
+          <option value="subject">Przedmiot</option>
+        </select>
+        <select value={sortDir} onChange={(e) => setSortDir(e.target.value)}>
+          <option value="asc">Rosnąco</option>
+          <option value="desc">Malejąco</option>
+        </select>
+        <button className="primary" onClick={() => setEditing(emptyForm)}>
+          Dodaj temat
+        </button>
+      </div>
+
+      {/* lista tematów */}
+      <table>
+        <thead>
+          <tr>
+            <th>Przedmiot</th>
+            <th>Temat</th>
+            <th>Termin</th>
+            <th>Czas</th>
+            <th>Priorytet</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {visible.map((t) => (
+            <tr key={t.id}>
+              <td className="subject">{t.subject}</td>
+              <td>{t.title}</td>
+              <td className="muted">{t.dueDate}</td>
+              <td className="muted">{t.minutes} min</td>
+              <td className={t.priority}>{t.priority}</td>
+              <td className={t.status.replace(" ", "-")}>{t.status}</td>
+              <td>
+                <button onClick={() => setEditing(t)}>Edytuj</button>
+                <button onClick={() => setDeleting(t)}>Usuń</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {filtered.length === 0 && <p>Brak tematów.</p>}
+
+      <Pagination page={page} pageCount={pageCount} onChange={setPage} />
+
+      {/* okienka */}
+      {editing && (
+        <TopicForm topic={editing.id ? editing : null} onClose={() => setEditing(null)} onSave={saveTopic} />
       )}
-      {deletingTopic && (
-        <DeleteDialog
-          topic={deletingTopic}
-          onCancel={() => setDeletingTopic(null)}
-          onConfirm={removeTopic}
-        />
+      {deleting && (
+        <Dialog>
+          <h2>Usunąć temat "{deleting.title}"?</h2>
+          <div className="buttons">
+            <button onClick={() => setDeleting(null)}>Anuluj</button>
+            <button className="danger" onClick={deleteTopic}>Usuń</button>
+          </div>
+        </Dialog>
       )}
     </main>
   );
