@@ -3,18 +3,114 @@ import { useEffect, useState } from "react";
 const PAGE_SIZE = 5;
 
 const startTopics = [
-  { id: 1, subject: "Biologia", title: "Fotosynteza", dueDate: "2026-10-05", minutes: 45, priority: "Wysoki", status: "W trakcie" },
-  { id: 2, subject: "Matematyka", title: "Funkcje kwadratowe", dueDate: "2026-10-07", minutes: 60, priority: "Wysoki", status: "Do zrobienia" },
-  { id: 3, subject: "Historia", title: "Kongres wiedeński", dueDate: "2026-10-09", minutes: 35, priority: "Normalny", status: "Do zrobienia" },
-  { id: 4, subject: "Angielski", title: "Phrasal verbs", dueDate: "2026-10-11", minutes: 25, priority: "Niski", status: "Zrobione" },
-  { id: 5, subject: "Chemia", title: "Reakcje redoks", dueDate: "2026-10-12", minutes: 50, priority: "Wysoki", status: "W trakcie" },
-  { id: 6, subject: "Fizyka", title: "Zasady dynamiki", dueDate: "2026-10-14", minutes: 40, priority: "Normalny", status: "Do zrobienia" },
-  { id: 7, subject: "Polski", title: "Lalka", dueDate: "2026-10-16", minutes: 55, priority: "Wysoki", status: "Do zrobienia" },
-  { id: 8, subject: "Geografia", title: "Klimat", dueDate: "2026-10-18", minutes: 30, priority: "Niski", status: "Zrobione" },
-  { id: 9, subject: "Matematyka", title: "Ciągi", dueDate: "2026-10-20", minutes: 45, priority: "Normalny", status: "Do zrobienia" },
-  { id: 10, subject: "Biologia", title: "Genetyka", dueDate: "2026-10-22", minutes: 60, priority: "Wysoki", status: "W trakcie" },
-  { id: 11, subject: "Angielski", title: "Okresy warunkowe", dueDate: "2026-10-24", minutes: 35, priority: "Normalny", status: "Do zrobienia" },
-  { id: 12, subject: "Chemia", title: "Wiązania chemiczne", dueDate: "2026-10-26", minutes: 40, priority: "Niski", status: "Do zrobienia" },
+  {
+    id: 1,
+    subject: "Biologia",
+    title: "Fotosynteza",
+    dueDate: "2026-10-05",
+    minutes: 45,
+    priority: "Wysoki",
+    status: "W trakcie",
+  },
+  {
+    id: 2,
+    subject: "Matematyka",
+    title: "Funkcje kwadratowe",
+    dueDate: "2026-10-07",
+    minutes: 60,
+    priority: "Wysoki",
+    status: "Do zrobienia",
+  },
+  {
+    id: 3,
+    subject: "Historia",
+    title: "Kongres wiedeński",
+    dueDate: "2026-10-09",
+    minutes: 35,
+    priority: "Normalny",
+    status: "Do zrobienia",
+  },
+  {
+    id: 4,
+    subject: "Angielski",
+    title: "Phrasal verbs",
+    dueDate: "2026-10-11",
+    minutes: 25,
+    priority: "Niski",
+    status: "Zrobione",
+  },
+  {
+    id: 5,
+    subject: "Chemia",
+    title: "Reakcje redoks",
+    dueDate: "2026-10-12",
+    minutes: 50,
+    priority: "Wysoki",
+    status: "W trakcie",
+  },
+  {
+    id: 6,
+    subject: "Fizyka",
+    title: "Zasady dynamiki",
+    dueDate: "2026-10-14",
+    minutes: 40,
+    priority: "Normalny",
+    status: "Do zrobienia",
+  },
+  {
+    id: 7,
+    subject: "Polski",
+    title: "Lalka",
+    dueDate: "2026-10-16",
+    minutes: 55,
+    priority: "Wysoki",
+    status: "Do zrobienia",
+  },
+  {
+    id: 8,
+    subject: "Geografia",
+    title: "Klimat",
+    dueDate: "2026-10-18",
+    minutes: 30,
+    priority: "Niski",
+    status: "Zrobione",
+  },
+  {
+    id: 9,
+    subject: "Matematyka",
+    title: "Ciągi",
+    dueDate: "2026-10-20",
+    minutes: 45,
+    priority: "Normalny",
+    status: "Do zrobienia",
+  },
+  {
+    id: 10,
+    subject: "Biologia",
+    title: "Genetyka",
+    dueDate: "2026-10-22",
+    minutes: 60,
+    priority: "Wysoki",
+    status: "W trakcie",
+  },
+  {
+    id: 11,
+    subject: "Angielski",
+    title: "Okresy warunkowe",
+    dueDate: "2026-10-24",
+    minutes: 35,
+    priority: "Normalny",
+    status: "Do zrobienia",
+  },
+  {
+    id: 12,
+    subject: "Chemia",
+    title: "Wiązania chemiczne",
+    dueDate: "2026-10-26",
+    minutes: 40,
+    priority: "Niski",
+    status: "Do zrobienia",
+  },
 ];
 
 const emptyForm = {
@@ -28,7 +124,7 @@ const emptyForm = {
   studyType: "Czytanie",
 };
 
-// okno 
+// okno
 function Dialog({ children }) {
   return (
     <div className="overlay">
@@ -69,11 +165,22 @@ function TopicForm({ topic, onClose, onSave }) {
         </label>
         <label>
           Termin
-          <input type="date" name="dueDate" value={form.dueDate} onChange={change} />
+          <input
+            type="date"
+            name="dueDate"
+            value={form.dueDate}
+            onChange={change}
+          />
         </label>
         <label>
           Czas (min)
-          <input type="number" name="minutes" min="5" value={form.minutes} onChange={change} />
+          <input
+            type="number"
+            name="minutes"
+            min="5"
+            value={form.minutes}
+            onChange={change}
+          />
         </label>
         <label>
           Priorytet
@@ -92,20 +199,39 @@ function TopicForm({ topic, onClose, onSave }) {
           </select>
         </label>
         <label className="inline">
-          <input type="checkbox" name="needsReview" checked={form.needsReview} onChange={change} />
+          <input
+            type="checkbox"
+            name="needsReview"
+            checked={form.needsReview}
+            onChange={change}
+          />
           Powtórzyć przed terminem
         </label>
         <label className="inline">
-          <input type="radio" name="studyType" value="Czytanie" checked={form.studyType === "Czytanie"} onChange={change} />
+          <input
+            type="radio"
+            name="studyType"
+            value="Czytanie"
+            checked={form.studyType === "Czytanie"}
+            onChange={change}
+          />
           Czytanie notatek
         </label>
         <label className="inline">
-          <input type="radio" name="studyType" value="Ćwiczenia" checked={form.studyType === "Ćwiczenia"} onChange={change} />
+          <input
+            type="radio"
+            name="studyType"
+            value="Ćwiczenia"
+            checked={form.studyType === "Ćwiczenia"}
+            onChange={change}
+          />
           Rozwiązywanie ćwiczeń
         </label>
         {error && <p className="error">{error}</p>}
         <div className="buttons">
-          <button type="button" onClick={onClose}>Anuluj</button>
+          <button type="button" onClick={onClose}>
+            Anuluj
+          </button>
           <button className="primary">Zapisz</button>
         </div>
       </form>
@@ -113,15 +239,19 @@ function TopicForm({ topic, onClose, onSave }) {
   );
 }
 
-// paginacja
-function Pagination({ page, pageCount, onChange }) {
+// strony
+function Strony({ page, pageCount, onChange }) {
   const pages = [];
   for (let i = 1; i <= pageCount; i++) pages.push(i);
 
   return (
-    <div className="pagination">
+    <div className="strony">
       {pages.map((p) => (
-        <button key={p} className={p === page ? "primary" : ""} onClick={() => onChange(p)}>
+        <button
+          key={p}
+          className={p === page ? "primary" : ""}
+          onClick={() => onChange(p)}
+        >
           {p}
         </button>
       ))}
@@ -130,7 +260,9 @@ function Pagination({ page, pageCount, onChange }) {
 }
 
 export default function App() {
-  const [topics, setTopics] = useState(() => JSON.parse(localStorage.getItem("topics")) || startTopics);
+  const [topics, setTopics] = useState(
+    () => JSON.parse(localStorage.getItem("topics")) || startTopics,
+  );
   const [search, setSearch] = useState("");
   const [subject, setSubject] = useState("");
   const [status, setStatus] = useState("");
@@ -146,13 +278,18 @@ export default function App() {
 
   const subjects = [...new Set(topics.map((t) => t.subject))];
 
-  // filtrowanie i sortowanie
+  // filtrowanie
   const filtered = topics
-    .filter((t) => (t.subject + t.title).toLowerCase().includes(search.toLowerCase()))
+    .filter((t) =>
+      (t.subject + t.title).toLowerCase().includes(search.toLowerCase()),
+    )
     .filter((t) => !subject || t.subject === subject)
     .filter((t) => !status || t.status === status)
     .sort((a, b) => {
-      const result = sortBy === "minutes" ? a.minutes - b.minutes : a[sortBy].localeCompare(b[sortBy]);
+      const result =
+        sortBy === "minutes"
+          ? a.minutes - b.minutes
+          : a[sortBy].localeCompare(b[sortBy]);
       return sortDir === "asc" ? result : -result;
     });
 
@@ -258,18 +395,24 @@ export default function App() {
       </table>
       {filtered.length === 0 && <p>Brak tematów.</p>}
 
-      <Pagination page={page} pageCount={pageCount} onChange={setPage} />
+      <Strony page={page} pageCount={pageCount} onChange={setPage} />
 
-      {/* okienka */}
+      {/* okno */}
       {editing && (
-        <TopicForm topic={editing.id ? editing : null} onClose={() => setEditing(null)} onSave={saveTopic} />
+        <TopicForm
+          topic={editing.id ? editing : null}
+          onClose={() => setEditing(null)}
+          onSave={saveTopic}
+        />
       )}
       {deleting && (
         <Dialog>
           <h2>Usunąć temat "{deleting.title}"?</h2>
           <div className="buttons">
             <button onClick={() => setDeleting(null)}>Anuluj</button>
-            <button className="danger" onClick={deleteTopic}>Usuń</button>
+            <button className="danger" onClick={deleteTopic}>
+              Usuń
+            </button>
           </div>
         </Dialog>
       )}
